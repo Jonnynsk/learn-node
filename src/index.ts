@@ -14,8 +14,21 @@ const addresses = [
 
 app.get("/products", (req: Request, res: Response) => {
   req.query.title
-    ? res.send(products.filter((p) => p.title.includes(String(req.query.title))))
+    ? res.send(
+        products.filter((p) => p.title.includes(String(req.query.title)))
+      )
     : res.send(products);
+});
+
+app.delete("/products/:id", (req: Request, res: Response) => {
+  for (let i = 0; i < products.length; i++) {
+    if (products[i].id === Number(req.params.id)) {
+      products.splice(i, 1);
+      res.send(204);
+      return;
+    }
+  }
+  res.send(404);
 });
 
 app.get("/products/:productTitle", (req: Request, res: Response) => {
