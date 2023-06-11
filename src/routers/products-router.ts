@@ -1,51 +1,40 @@
 import { Request, Response, Router } from "express";
 
-const products = [
-  { id: 1, title: "tomato" },
-  { id: 2, title: "apple" },
-];
+import { ProductsRepository } from "../repositories/products-repository";
 
 export const ProductRouter = Router();
 
 ProductRouter.get("/", (req: Request, res: Response) => {
-  req.query.title
-    ? res.send(
-        products.filter((p) => p.title.includes(String(req.query.title)))
-      )
-    : res.send(products);
+  const foundProducts = ProductsRepository.findProducts(
+    String(req.query.title)
+  );
+  res.send(foundProducts);
 });
 
 ProductRouter.post("/", (req: Request, res: Response) => {
-  const newProduct = {
-    id: Number(new Date()),
-    title: req.body.title,
-  };
-  products.push(newProduct);
+  const newProduct = ProductsRepository.createProduct(req.body.title);
   res.status(201).send(newProduct);
 });
 
 ProductRouter.delete("/:id", (req: Request, res: Response) => {
-  for (let i = 0; i < products.length; i++) {
-    if (products[i].id === Number(req.params.id)) {
-      products.splice(i, 1);
-      res.send(204);
-      return;
-    }
-  }
-  res.send(404);
+  const isDeleted = ProductsRepository.deleteProduct(Number(req.params.id));
+  isDeleted ? res.send(204) : res.send(404);
 });
 
 ProductRouter.put("/:id", (req: Request, res: Response) => {
-  const product = products.find((p) => p.id === Number(req.params.id));
-  if (product) {
-    product.title = req.body.title;
+  const isUpdated = ProductsRepository.updateProduct(
+    Number(req.params.id),
+    req.body.title
+  );
+  if (isUpdated) {
+    const product = ProductsRepository.productById(Number(req.params.id));
     res.send(product);
   } else {
     res.send(404);
   }
 });
 
-ProductRouter.get("/:productTitle", (req: Request, res: Response) => {
-  const product = products.find((p) => p.title === req.params.productTitle);
+ProductRouter.get("/:id", (req: Request, res: Response) => {
+  const product = ProductsRepository.productById(Number(req.params.id));
   product ? res.send(product) : res.send(404);
 });
